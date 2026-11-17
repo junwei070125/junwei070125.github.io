@@ -147,10 +147,17 @@ input:focus-visible {
 }
 
 .health-display--flash .health-icon {
-  animation: health-flash 90ms steps(2, end) infinite;
+  animation: health-flash
+    var(--health-flash-cycle-duration, 300ms)
+    steps(2, end)
+    var(--health-flash-count, 2);
 }
 
 @keyframes health-flash {
+  from {
+    opacity: 1;
+  }
+
   to {
     opacity: 0.15;
   }
@@ -178,6 +185,32 @@ input:focus-visible {
 .hud__combo {
   color: #d3bbff;
   font-size: clamp(0.65rem, 1.2vw, 1rem);
+}
+
+.collection-alert {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.collection-alert__marker {
+  position: absolute;
+  color: #ff526d;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow:
+    0 0 0.15em #ff526d,
+    0 0 0.35em rgb(255 82 109 / 80%);
+  transform: translate(-50%, -50%);
+  animation: collection-alert-flash 460ms steps(2, end) infinite;
+}
+
+@keyframes collection-alert-flash {
+  50% {
+    opacity: 0.15;
+  }
 }
 
 .image-button {
@@ -644,6 +677,10 @@ input:focus-visible {
   }
 
   .ending-portrait--speaking {
+    animation: none;
+  }
+
+  .collection-alert__marker {
     animation: none;
   }
 }

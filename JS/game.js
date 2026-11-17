@@ -23,7 +23,7 @@
       x: 300, // 扇形圓心，單位：畫布像素。
       y: 440,
       radius: 650, // 遮罩半徑，單位：畫布像素。
-      angleDegrees: 60, // 固定圓心角。
+      angleDegrees: 30, // 固定圓心角。
       initialDirectionDegrees: 0, // 初始朝向畫面右方；滑鼠移動後即時跟隨。
     },
     character: {
@@ -41,11 +41,35 @@
       collisionRadius: 22, // 與主角碰撞的半徑，單位：畫布像素。
       clickPadding: 20, // 點擊範圍額外擴大的像素。
       score: 1000, // 每個物件成功收集所得分數。
+      collectionEffect: {
+        blinkCount: 2, // 收集時物件閃爍次數。
+        blinkDurationMs: 600, // 物件閃爍總時間，單位：毫秒。
+        popupDurationMs: 1000, // +分數文字顯示時間，單位：毫秒。
+        popupFontSize: 44, // +分數文字大小，單位：畫布像素。
+        popupOffsetY: 16, // 文字初始位置距物件上緣的距離，單位：畫布像素。
+        popupRise: 54, // 文字向上跳出的距離，單位：畫布像素。
+        popupColor: "#ffe487",
+        popupShadowColor: "#21152d",
+        popupShadowBlur: 8,
+      },
+      milestoneGlow: {
+        shadowColor: "#fff2a8",
+        shadowBlur: 24,
+      },
+    },
+    collectionAlert: {
+      fontSize: 96, // 驚嘆號大小，單位：畫布像素。
+      positions: {
+        // 四個角落的位置，使用畫布座標；可調整 x、y。
+        topLeft: { x: 70, y: 200 },
+        topRight: { x: 1210, y: 200 },
+        bottomLeft: { x: 70, y: 520 },
+        bottomRight: { x: 1210, y: 520 },
+      },
     },
     player: {
       startingHealth: 3,
       startingScore: 196,
-      damageFlashMs: 1000, // 扣血後 HP 圖示閃爍時間，單位：毫秒。
     },
     combo: {
       startingValue: 0,
@@ -187,8 +211,25 @@
   let characterElement = document.querySelector("#game-character");
   const assetWarning = document.querySelector("#asset-warning");
   const healthDisplay = document.querySelector("#health-display");
+  const healthFlashEffect = CONFIG.collectible.collectionEffect;
+  const healthFlashCycleMs =
+    healthFlashEffect.blinkCount > 0
+      ? healthFlashEffect.blinkDurationMs / healthFlashEffect.blinkCount
+      : healthFlashEffect.blinkDurationMs;
+  healthDisplay.style.setProperty(
+    "--health-flash-cycle-duration",
+    `${healthFlashCycleMs}ms`,
+  );
+  healthDisplay.style.setProperty(
+    "--health-flash-count",
+    String(healthFlashEffect.blinkCount),
+  );
   const scoreDisplay = document.querySelector("#score-display");
   const comboDisplay = document.querySelector("#combo-display");
+  const collectionAlert = document.querySelector("#collection-alert");
+  const collectionAlertMarkers = [
+    ...collectionAlert.querySelectorAll(".collection-alert__marker"),
+  ];
   const overlays = {
     intro: document.querySelector("#intro-overlay"),
     pause: document.querySelector("#pause-overlay"),
@@ -228,8 +269,22 @@
   let endingApproachStart = 0;
   let endingApproachDuration = 0;
   let isFlashing = false;
+  let healthDisplaySignature = "";
   let developerScroll = null;
   let items = [];
+
+  function layoutCollectionAlert() {
+    const scale = shell.clientWidth / CONFIG.canvas.width;
+    collectionAlertMarkers.forEach((marker) => {
+      const position = CONFIG.collectionAlert.positions[marker.dataset.corner];
+      marker.style.left = `${(position.x / CONFIG.canvas.width) * 100}%`;
+      marker.style.top = `${(position.y / CONFIG.canvas.height) * 100}%`;
+      marker.style.fontSize = `${CONFIG.collectionAlert.fontSize * scale}px`;
+    });
+  }
+
+  window.addEventListener("resize", layoutCollectionAlert);
+  layoutCollectionAlert();
 
   const isDeveloperMode =
     CONFIG.developerMode && window.location.hash === "#author-dev";
@@ -343,6 +398,7 @@
       imageNumber: position.imageNumber,
       image: getItemImage(position.imageNumber),
       collected: false,
+      collectionEffectElapsedMs: 0,
       touchingCharacter: false,
       offscreenHandled: false,
     }));
@@ -373,8 +429,15 @@
     };
   }
 
-  function updateHud() {
-    healthDisplay.classList.toggle("health-display--flash", isFlashing);
+  function updateHealthDisplay() {
+    const hasFullHealthImage =
+      fullHealthImage.complete && fullHealthImage.naturalWidth > 0;
+    const hasEmptyHealthImage =
+      emptyHealthImage.complete && emptyHealthImage.naturalWidth > 0;
+    const signature = `${health}:${hasFullHealthImage}:${hasEmptyHealthImage}`;
+    if (signature === healthDisplaySignature) return;
+    healthDisplaySignature = signature;
+
     healthDisplay.replaceChildren();
     for (let index = 0; index < CONFIG.player.startingHealth; index += 1) {
       const icon = document.createElement("span");
@@ -382,7 +445,10 @@
       icon.className = `health-icon${isAlive ? "" : " health-icon--empty"}`;
       icon.setAttribute("aria-label", isAlive ? "剩餘生命" : "已失去生命");
       const image = isAlive ? fullHealthImage : emptyHealthImage;
-      if (image.complete && image.naturalWidth > 0) {
+      if (
+        (isAlive && hasFullHealthImage) ||
+        (!isAlive && hasEmptyHealthImage)
+      ) {
         const iconImage = document.createElement("img");
         iconImage.src = image.src;
         iconImage.alt = "";
@@ -392,7 +458,11 @@
       }
       healthDisplay.append(icon);
     }
+  }
 
+  function updateHud() {
+    updateHealthDisplay();
+    healthDisplay.classList.toggle("health-display--flash", isFlashing);
     scoreDisplay.replaceChildren();
     if (moneyImage.complete && moneyImage.naturalWidth > 0) {
       const icon = document.createElement("img");
@@ -459,9 +529,8 @@
     }
   }
 
-  function drawSpotlightLayer() {
+  function clipToSpotlight() {
     const halfAngle = (CONFIG.spotlight.angleDegrees * Math.PI) / 360;
-    context.save();
     context.beginPath();
     context.moveTo(CONFIG.spotlight.x, CONFIG.spotlight.y);
     context.arc(
@@ -473,6 +542,11 @@
     );
     context.closePath();
     context.clip();
+  }
+
+  function drawSpotlightLayer() {
+    context.save();
+    clipToSpotlight();
     paintBackground(
       background2,
       CONFIG.background.background2Length,
@@ -492,9 +566,92 @@
       ) {
         return;
       }
+      context.save();
+      if (
+        CONFIG.background.accelerationStartAfterCollectedItems > 0 &&
+        item.id <= CONFIG.background.accelerationStartAfterCollectedItems
+      ) {
+        context.shadowColor = CONFIG.collectible.milestoneGlow.shadowColor;
+        context.shadowBlur = CONFIG.collectible.milestoneGlow.shadowBlur;
+      }
       context.drawImage(item.image, screenX - width / 2, item.y - height / 2);
+      context.restore();
     });
     context.restore();
+  }
+
+  function drawCollectionEffects() {
+    const effect = CONFIG.collectible.collectionEffect;
+    for (const item of items) {
+      if (!item.collected) continue;
+
+      const elapsedMs = item.collectionEffectElapsedMs;
+      const screenX = item.x - scrollX;
+      const { width, height } = getItemImageSize(item);
+      if (
+        elapsedMs < effect.blinkDurationMs &&
+        effect.blinkDurationMs > 0 &&
+        effect.blinkCount > 0 &&
+        width > 0 &&
+        height > 0
+      ) {
+        const blinkIntervalMs =
+          effect.blinkDurationMs / (effect.blinkCount * 2);
+        const isVisible =
+          Math.floor(elapsedMs / blinkIntervalMs) % 2 === 0;
+        if (isVisible) {
+          context.save();
+          clipToSpotlight();
+          context.drawImage(
+            item.image,
+            screenX - width / 2,
+            item.y - height / 2,
+          );
+          context.restore();
+        }
+      }
+
+      if (elapsedMs >= effect.popupDurationMs || effect.popupDurationMs <= 0) {
+        continue;
+      }
+      const progress = elapsedMs / effect.popupDurationMs;
+      const fadeStart = 0.75;
+      const opacity =
+        progress <= fadeStart
+          ? 1
+          : (1 - progress) / (1 - fadeStart);
+      const textY =
+        item.y -
+        height / 2 -
+        effect.popupOffsetY -
+        effect.popupRise * progress;
+      const text = `+${CONFIG.collectible.score}`;
+
+      context.save();
+      context.globalAlpha = opacity;
+      context.font = `bold ${effect.popupFontSize}px "DotGothic16", "Courier New", monospace`;
+      context.textAlign = "center";
+      context.textBaseline = "bottom";
+      context.lineJoin = "round";
+      context.lineWidth = Math.max(2, effect.popupFontSize * 0.1);
+      context.strokeStyle = effect.popupShadowColor;
+      context.shadowColor = effect.popupShadowColor;
+      context.shadowBlur = effect.popupShadowBlur;
+      context.strokeText(text, screenX, textY);
+      context.fillStyle = effect.popupColor;
+      context.fillText(text, screenX, textY);
+      context.restore();
+    }
+  }
+
+  function updateCollectionAlert() {
+    const milestone = CONFIG.background.accelerationStartAfterCollectedItems;
+    collectionAlert.hidden = !(
+      milestone > 0 &&
+      (state === "running" || state === "paused") &&
+      collectedItemCount >= milestone - 1 &&
+      collectedItemCount < milestone
+    );
   }
 
   function drawCharacter() {
@@ -580,9 +737,11 @@
       "#100d20",
     );
     drawSpotlightLayer();
+    drawCollectionEffects();
     drawCharacter();
     positionEndingCharacter();
     updateHud();
+    updateCollectionAlert();
   }
 
   function setOverlay(name) {
@@ -625,7 +784,10 @@
     const characterX = CONFIG.character.x;
     const characterY = CONFIG.character.y;
     for (const item of items) {
-      if (item.collected) continue;
+      if (item.collected) {
+        item.collectionEffectElapsedMs += deltaSeconds * 1000;
+        continue;
+      }
 
       const screenX = item.x - scrollX;
       const distance = Math.hypot(screenX - characterX, item.y - characterY);
@@ -740,13 +902,16 @@
     health = Math.max(0, health - 1);
     currentCombo = CONFIG.combo.startingValue;
     if (flashTimerId) window.clearTimeout(flashTimerId);
+    isFlashing = false;
+    healthDisplay.classList.remove("health-display--flash");
+    void healthDisplay.offsetWidth;
     isFlashing = true;
     updateHud();
     flashTimerId = window.setTimeout(() => {
       flashTimerId = 0;
       isFlashing = false;
       updateHud();
-    }, CONFIG.player.damageFlashMs);
+    }, healthFlashEffect.blinkDurationMs);
     if (health === 0) finishGame("failure");
   }
 
@@ -970,6 +1135,7 @@
       if (!insideHitbox || !isInsideSpotlight(screenX, item.y)) continue;
 
       item.collected = true;
+      item.collectionEffectElapsedMs = 0;
       item.touchingCharacter = false;
       collectedItemCount += 1;
       if (
