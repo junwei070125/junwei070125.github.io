@@ -1,0 +1,203 @@
+/* 全螢幕首頁與基本重置。 */
+:root {
+  color-scheme: dark;
+  font-family: "DotGothic16", "Courier New", monospace;
+  background: #000000;
+  color: #e2e2e2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.home {
+  position: relative;
+  display: grid;
+  min-height: 100vh;
+  min-height: 100svh;
+  place-items: center;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+/* 背景圖層共用設定；擴大圖層寬度，避免左右移動時露出空隙。 */
+.parallax,
+.parallax__layer {
+  position: absolute;
+  inset: 0;
+}
+
+.parallax {
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.parallax__layer {
+  /*
+   * 視差參數：range-x / range-y 分別控制滑鼠移至 X / Y 軸邊緣時
+   * 圖層的最大水平 / 垂直移動距離，詳細數值在各層設定。
+   */
+  --parallax-offset-x: 0px;
+  --parallax-offset-y: 0px;
+  left: calc(var(--parallax-range-x) * -1);
+  right: calc(var(--parallax-range-x) * -1);
+  top: calc(var(--parallax-range-y) * -1);
+  bottom: calc(var(--parallax-range-y) * -1);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  transform: translate3d(var(--parallax-offset-x), var(--parallax-offset-y), 0);
+  will-change: transform;
+}
+
+/*
+ * 可調整圖層寬度的位置：修改各層的 --parallax-range-x。
+ * 調小可減少左右延伸的寬度，也會同步減少該層的水平視差距離。
+ * 五張背景 PNG 由遠至近排列，X/Y 軸移動幅度逐層增加。
+ */
+.parallax__layer--1 {
+  --parallax-range-x: 4px;
+  --parallax-range-y: 5px;
+  background-image: url("../image/background/layer-1.png");
+}
+
+.parallax__layer--2 {
+  --parallax-range-x: -8px;
+  --parallax-range-y: 10px;
+  background-image: url("../image/background/layer-2.png");
+}
+
+.parallax__layer--3 {
+  --parallax-range-x: 8px;
+  --parallax-range-y: 10px;
+  background-image: url("../image/background/layer-3.png");
+}
+
+.parallax__layer--4 {
+  --parallax-range-x: 24px;
+  --parallax-range-y: 20px;
+  background-image: url("../image/background/layer-4.png");
+}
+
+.parallax__layer--5 {
+  --parallax-range-x: 24px;
+  --parallax-range-y: 20px;
+  background-image: url("../image/background/layer-5.png");
+}
+
+.parallax__layer--6 {
+  --parallax-range-x: 40px;
+  --parallax-range-y: 30px;
+  background-image: url("../image/background/layer-6.png");
+}
+
+.parallax__layer--7 {
+  --parallax-range-x: -40px;
+  --parallax-range-y: 30px;
+  background-image: url("../image/background/layer-7.png");
+}
+
+.particle {
+  position: absolute;
+  z-index: 1;
+  inset: -3rem 0;
+  pointer-events: none;
+  background-image: url("../image/background/layer-8.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  animation: particle-sway 4s ease-in-out infinite;
+}
+
+@keyframes particle-sway {
+  0%,
+  100% {
+    transform: translateY(5rem);
+  }
+
+  50% {
+    transform: translateY(0rem);
+  }
+}
+
+/* 圖片式開始遊戲連結置中並顯示在背景上方。 */
+.home__content {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.home__instruction {
+  font-family: "DotGothic16", "Courier New", monospace;
+  font-size: 1.5rem;
+  margin: 0;
+  transform: translateY(7.5rem);
+  animation: instruction-blink 3s ease-in-out infinite;
+}
+
+@keyframes instruction-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home__instruction,
+  .particle {
+    animation: none;
+  }
+}
+
+.play-button {
+  /* 開始遊戲圖片的 X/Y 視差幅度，設定得比背景更明顯。 */
+  width: 100%;
+  --parallax-range-x: 86px;
+  --parallax-range-y: 62px;
+  --parallax-offset-x: 0px;
+  --parallax-offset-y: 0px;
+  display: block;
+  transform: translate3d(var(--parallax-offset-x), var(--parallax-offset-y), 0);
+  will-change: transform;
+}
+
+.play-button__image {
+  display: block;
+  width: clamp(450px, 75vw, 900px);
+  height: auto;
+  transform: translateY(-3rem);
+}
+
+.play-button__image:hover {
+  transform: scale(1.5);
+  filter: drop-shadow(0 0 15px #ff0000);
+  transform: translateY(-3rem);
+}
+
+.play-button:focus-visible {
+  transform: scale(1.5);
+  filter: drop-shadow(0 0 15px #ff0000);
+  transform: translateY(-3rem);
+}

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Light the Void 2D 網頁遊戲" />
+    <title>Light the Void</title>
+    <link rel="stylesheet" href="./CSS/game.css" />
+  </head>
+  <body>
+    <main class="game-page">
+      <header class="page-header">
+        <a class="home-link" href="./index.html">Light the Void</a>
+        <p>移動滑鼠照亮前方，點擊光束中的物件收集它們。</p>
+      </header>
+
+      <section class="game-frame" aria-label="遊戲畫面">
+        <div class="game-shell">
+          <canvas
+            id="game-canvas"
+            width="1280"
+            height="720"
+            aria-label="Light the Void 遊戲畫布"
+          ></canvas>
+          <img id="game-character" class="game-character" alt="" hidden />
+          <div class="ending-interaction" id="ending-interaction" hidden>
+            <button
+              class="ending-character-button"
+              id="character-button"
+              type="button"
+              aria-label="與主任對話"
+              aria-controls="ending-dialogue-panel"
+              aria-expanded="false"
+            >
+              <img
+                src="./image/game/character/character-3.png"
+                alt=""
+                data-asset-label="主任 character-3.png"
+              />
+              <span>主任</span>
+            </button>
+            <section
+              class="ending-dialogue-scene"
+              id="ending-dialogue-scene"
+              hidden
+            >
+              <div
+                class="ending-portrait"
+                id="ending-portrait-a"
+                aria-hidden="true"
+              >
+                <img
+                  src="./image/game/character/character-1.gif"
+                  alt=""
+                  data-asset-label="旅人立繪 character-1.gif"
+                />
+                <span class="ending-portrait__name"></span>
+              </div>
+              <div
+                class="ending-portrait"
+                id="ending-portrait-b"
+                aria-hidden="true"
+              >
+                <img
+                  src="./image/game/character/character-3.png"
+                  alt=""
+                  data-asset-label="主任立繪 character-3.png"
+                />
+                <span class="ending-portrait__name"></span>
+              </div>
+              <button
+                class="ending-dialogue-panel"
+                id="ending-dialogue-panel"
+                type="button"
+                aria-live="polite"
+                aria-label="結局對話，點擊繼續"
+              >
+                <span
+                  class="ending-dialogue-speaker"
+                  id="ending-speaker"
+                ></span>
+                <span id="ending-dialogue" class="ending-dialogue"></span>
+                <span
+                  class="ending-dialogue-continue"
+                  id="ending-continue"
+                  hidden
+                >
+                  繼續 <span aria-hidden="true">▼</span>
+                </span>
+              </button>
+              <button
+                class="ending-dialogue-finish"
+                id="ending-finish-button"
+                type="button"
+                hidden
+              >
+                結束對話
+              </button>
+            </section>
+          </div>
+
+          <div class="hud" aria-live="polite">
+            <div
+              class="hud__health"
+              id="health-display"
+              aria-label="生命值"
+            ></div>
+            <div class="hud__stats">
+              <span class="hud__score" id="score-display">✦ 196</span>
+              <span class="hud__combo" id="combo-display">COMBO 0</span>
+            </div>
+            <button
+              class="image-button menu-button"
+              id="pause-button"
+              type="button"
+              aria-label="暫停遊戲"
+              title="暫停遊戲"
+            >
+              <img
+                src="./image/game/menu.png"
+                alt=""
+                data-asset-label="選單按鈕 menu.png"
+              />
+              <span aria-hidden="true">☰</span>
+            </button>
+          </div>
+
+          <p class="asset-warning" id="asset-warning" role="status" hidden></p>
+          <aside class="developer-panel" id="developer-panel" hidden>
+            <label>
+              畫面縮放
+              <input
+                id="developer-scale"
+                type="range"
+                min="0.5"
+                max="1.5"
+                step="0.05"
+                value="1"
+              />
+            </label>
+            <label>
+              背景位置
+              <input
+                id="developer-scroll"
+                type="range"
+                min="0"
+                max="41728"
+                step="100"
+                value="0"
+              />
+            </label>
+            <output id="developer-position">0 px</output>
+          </aside>
+
+          <section class="overlay overlay--intro" id="intro-overlay">
+            <div class="dialog-card intro-card">
+              <img
+                class="instruction-art"
+                src="./image/game/howtoplay.png"
+                alt="玩法介紹"
+                data-asset-label="玩法介紹圖 howtoplay.png"
+              />
+              <div class="fallback-instructions">
+                <p class="eyebrow">HOW TO PLAY</p>
+                <h1>點亮虛空</h1>
+                <p>移動滑鼠旋轉光束，點擊光束照亮的物件收集分數。</p>
+                <p>避開物件碰撞，抵達背景盡頭即可完成旅程。</p>
+              </div>
+              <button
+                class="image-button action-button"
+                id="start-button"
+                type="button"
+              >
+                <img
+                  src="./image/game/gotit.png"
+                  alt=""
+                  data-asset-label="開始按鈕 gotit.png"
+                />
+                <span>我知道了，開始遊戲</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="overlay" id="pause-overlay" hidden>
+            <div class="dialog-card pause-card">
+              <img
+                class="menu-art"
+                src="./image/game/menubg.gif"
+                alt=""
+                data-asset-label="暫停選單背景 menubg.gif"
+              />
+              <p class="eyebrow">PAUSED</p>
+              <h2>旅程暫停</h2>
+              <button
+                class="image-button action-button"
+                id="home-button"
+                type="button"
+              >
+                <img
+                  src="./image/game/button.png"
+                  alt=""
+                  data-asset-label="按鈕 button.png"
+                />
+                <span>返回主畫面</span>
+              </button>
+              <button
+                class="image-button action-button"
+                id="resume-button"
+                type="button"
+              >
+                <img
+                  src="./image/game/button.png"
+                  alt=""
+                  data-asset-label="按鈕 button.png"
+                />
+                <span>繼續遊戲</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="overlay" id="failure-overlay" hidden>
+            <div class="dialog-card">
+              <p class="eyebrow">GAME OVER</p>
+              <h2>光芒消逝了</h2>
+              <p>本次得分：<strong id="failure-score">196</strong></p>
+              <button
+                class="image-button action-button"
+                id="retry-button"
+                type="button"
+              >
+                <img
+                  src="./image/game/button.png"
+                  alt=""
+                  data-asset-label="按鈕 button.png"
+                />
+                <span>重新開始</span>
+              </button>
+              <button class="text-button" data-go-home type="button">
+                返回主畫面
+              </button>
+            </div>
+          </section>
+
+          <section class="overlay" id="result-overlay" hidden>
+            <div class="dialog-card result-card">
+              <img
+                class="result-art"
+                src="./image/game/result.png"
+                alt=""
+                data-asset-label="結算畫面 result.png"
+              />
+              <p class="eyebrow">RESULT</p>
+              <h2>旅程結算</h2>
+              <dl class="result-list">
+                <div>
+                  <dt>原始分數</dt>
+                  <dd id="result-base-score">196</dd>
+                </div>
+                <div>
+                  <dt>最高 Combo</dt>
+                  <dd id="result-max-combo">0</dd>
+                </div>
+                <div>
+                  <dt>Combo 額外分數</dt>
+                  <dd id="result-bonus">0</dd>
+                </div>
+                <div class="result-total">
+                  <dt>最終總分</dt>
+                  <dd id="result-total">196</dd>
+                </div>
+              </dl>
+              <button
+                class="image-button action-button"
+                id="result-retry-button"
+                type="button"
+              >
+                <img
+                  src="./image/game/button.png"
+                  alt=""
+                  data-asset-label="按鈕 button.png"
+                />
+                <span>再玩一次</span>
+              </button>
+              <button class="text-button" data-go-home type="button">
+                返回主畫面
+              </button>
+            </div>
+          </section>
+        </div>
+      </section>
+      <p class="page-footnote">
+        使用滑鼠指向遊戲畫面來轉動光束。按 Esc 可暫停或繼續。
+      </p>
+    </main>
+    <script src="./JS/game.js" defer></script>
+  </body>
+</html>
