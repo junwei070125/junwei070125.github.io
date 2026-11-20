@@ -14,8 +14,8 @@
       speedIncreaseAtStart: 150, // 開始加速時額外增加的速度（畫布像素／秒）。
       speedIncreaseAtEnd: 300, // 加速至最後物件前的最高額外速度（畫布像素／秒）。
       endingDecelerationPower: 2, // >>> 最後物件後減速：越大越晚減慢，抵達終點時速度仍為 0。
-      background1Length: 43008, // 背景圖原始顯示寬度，單位：畫布像素。
-      background2Length: 43008, // 第二層實際顯示寬度；兩層共用同一世界位移。
+      background1Length: 31744, // 背景圖原始顯示寬度，單位：畫布像素。
+      background2Length: 31744, // 第二層實際顯示寬度；兩層共用同一世界位移。
       backgroundHeight: 720, // 背景圖顯示高度，單位：畫布像素。
       endPadding: 0, // 終點位置可微調的像素值；0 表示底層背景右緣到達畫面右緣。
     },
@@ -36,10 +36,10 @@
       runImage: "./image/game/character/character-2.gif",
     },
     collectible: {
-      count: 60,
+      count: 45,
       image: "./image/game/item/item.png", // 指定素材位置；不以其他素材代替。
       collisionRadius: 22, // 與主角碰撞的半徑，單位：畫布像素。
-      clickPadding: 20, // 點擊範圍額外擴大的像素。
+      clickPadding: 50, // 點擊範圍額外擴大的像素。
       score: 1000, // 每個物件成功收集所得分數。
       collectionEffect: {
         blinkCount: 2, // 收集時物件閃爍次數。
@@ -71,19 +71,28 @@
       startingHealth: 3,
       startingScore: 196,
     },
+    damageEffect: {
+      color: "rgb(212, 60, 144)",
+      opacity: 0.2,
+      gradientRange: "15%",
+      criticalPulseDurationMs: 1800,
+      fadeDurationMs: 1200,
+    },
     combo: {
       startingValue: 0,
       comboBonusMultiplier: 100, // 結算時每點最高 Combo 額外分數。
     },
     ending: {
       // >>> character-3 位置：手動調整下方 X/Y（背景世界座標，非畫面座標）。
-      characterX: 42500,
-      characterY: 420,
+      characterX: 31300,
+      characterY: 430,
       characterWidth: 110,
       characterHeight: 150,
       dialogue: {
         typingSpeedMs: 45,
+        // 結局對話版面（相對畫面百分比）：調整立繪、對話框的位置與尺寸。
         layout: {
+          // 角色位置固定：player 左側、director 右側。
           portraitA: { left: "4%", bottom: "24%", width: "34%", height: "70%" },
           portraitB: {
             right: "4%",
@@ -91,7 +100,9 @@
             width: "34%",
             height: "70%",
           },
+          // 對話框位置與寬度；文字大小及框內位置請調整 CSS/game.css。
           panel: { left: "7%", bottom: "4%", width: "86%" },
+          // 結束對話按鈕位置（相對遊戲框右側／底部百分比）；尺寸由 CSS 控制。
           finishButton: { right: "7%", bottom: "29%" },
         },
       },
@@ -104,17 +115,19 @@
       money: "./image/game/icon/money.png",
       // 以下素材由 HTML 載入並同樣列入失敗檢查。
       ui: [
-        "./image/game/howtoplay.png",
-        "./image/game/gotit.png",
-        "./image/game/menu.png",
-        "./image/game/menubg.gif",
-        "./image/game/button.png",
-        "./image/game/result.png",
+        "./image/game/screen/howtoplay.gif",
+        "./image/game/icon/menu.png",
+        "./image/game/screen/menubg.gif",
+        "./image/button/button-1.png",
+        "./image/button/button-2.png",
+        "./image/game/screen/result-1.png",
       ],
     },
   };
+  // menubg.gif is 36 frames at 60 ms each.
+  const PAUSE_BACKGROUND_CYCLE_DURATION_MS = 1700;
 
-  // 結局對話資料：每段可用 images 覆寫任一角色立繪，未指定時使用角色預設圖。
+  // speaker 決定發言角色；images 以 player/director 覆寫固定左右位置的角色立繪。
   const ENDING_DIALOGUE = {
     portraits: {
       player: {
@@ -127,18 +140,81 @@
       },
     },
     lines: [
-      { speaker: "director", text: "終於抵達旅程的終點了。" },
+      { speaker: "director", text: "辛苦了。這條走廊，很久沒有這麼安靜。" },
       {
         speaker: "player",
-        text: "謝謝你一路陪著我，讓我能點亮前方的黑暗。",
+        text: "……部長，這麼晚了還在學校？",
         images: { player: "./image/game/tachie/tachieA-2.png" },
       },
       {
         speaker: "director",
-        text: "謝謝你一路點亮黑暗，接下來就由我陪你回家吧。",
+        text: "今晚是新人的第一天，總得有人在終點等你。",
+      },
+      {
+        speaker: "director",
+        text: "我剛才在監控室看著。{n} 個，我數過了。",
+      },
+      {
+        speaker: "player",
+        text: "……",
+        images: { player: "./image/game/tachie/tachieA-3.png" },
+      },
+      {
+        speaker: "director",
+        text: "別誤會，是工作需要。新人的狀況，我總要掌握。",
+        images: { director: "./image/game/tachie/tachieB-2.png" },
+      },
+      {
+        speaker: "director",
+        text: "不過你走完全程的樣子，我看得比預想的還認真。",
+        images: { director: "./image/game/tachie/tachieB-3.png" },
+      },
+      {
+        speaker: "player",
+        text: "……部長？",
+        images: { player: "./image/game/tachie/tachieA-2.png" },
+      },
+      {
+        speaker: "director",
+        text: "抱歉，我話太多了。面試那天人很多，我通常記不住，只有你回答「我沒什麼特別的優點」的語氣，我到現在都記得。",
+        images: { director: "./image/game/tachie/tachieB-2.png" },
+      },
+      {
+        speaker: "player",
+        text: "……我只是很普通地回答。",
+      },
+      {
+        speaker: "director",
+        text: "可是我就是記住了。我自己也不太明白為什麼",
+        images: { director: "./image/game/tachie/tachieB-2.png" },
+      },
+      {
+        speaker: "director",
+        text: "對了，明天的班表我先排好了，你的名字寫在最上面。",
+      },
+      {
+        speaker: "player",
+        text: "……我還沒決定明天要不要來。",
+      },
+      {
+        speaker: "director",
+        text: "不急，你慢慢想。鑰匙放在警衛室桌上，想來的時候就能拿。",
+      },
+      {
+        speaker: "director",
+        text: "路上小心，我看你走到門口。",
+      },
+      {
+        speaker: "director",
+        text: "明天見，{暱稱}。我會先到的。",
+        images: { director: "./image/game/tachie/tachieB-2.png" },
       },
     ],
   };
+  const travelerName = new URLSearchParams(window.location.search)
+    .get("traveler")
+    ?.trim();
+  if (travelerName) ENDING_DIALOGUE.portraits.player.name = travelerName;
 
   // 60 個物件的固定背景世界座標（x、y 單位皆為畫布像素）。
   // imageNumber 是該物件使用的圖片編號；例如改成 12 就會載入 item-12.png。
@@ -188,29 +264,34 @@
     { x: 28515, y: 430, imageNumber: 9 },
     { x: 28945, y: 309, imageNumber: 12 },
     { x: 29710, y: 310, imageNumber: 7 },
-    { x: 30696, y: 252, imageNumber: 6 },
-    { x: 31232, y: 459, imageNumber: 5 },
-    { x: 32205, y: 383, imageNumber: 12 },
-    { x: 32783, y: 262, imageNumber: 6 },
-    { x: 33810, y: 314, imageNumber: 7 },
-    { x: 34300, y: 343, imageNumber: 11 },
-    { x: 35616, y: 462, imageNumber: 1 },
-    { x: 36110, y: 309, imageNumber: 14 },
-    { x: 36408, y: 461, imageNumber: 3 },
-    { x: 37401, y: 462, imageNumber: 1 },
-    { x: 38138, y: 461, imageNumber: 3 },
-    { x: 38752, y: 430, imageNumber: 9 },
-    { x: 39015, y: 365, imageNumber: 4 },
-    { x: 39519, y: 460, imageNumber: 8 },
-    { x: 40046, y: 258, imageNumber: 6 },
+    // { x: 30696, y: 252, imageNumber: 6 },
+    // { x: 31232, y: 459, imageNumber: 5 },
+    // { x: 32205, y: 383, imageNumber: 12 },
+    // { x: 32783, y: 262, imageNumber: 6 },
+    // { x: 33810, y: 314, imageNumber: 7 },
+    // { x: 34300, y: 343, imageNumber: 11 },
+    // { x: 35616, y: 462, imageNumber: 1 },
+    // { x: 36110, y: 309, imageNumber: 14 },
+    // { x: 36408, y: 461, imageNumber: 3 },
+    // { x: 37401, y: 462, imageNumber: 1 },
+    // { x: 38138, y: 461, imageNumber: 3 },
+    // { x: 38752, y: 430, imageNumber: 9 },
+    // { x: 39015, y: 365, imageNumber: 4 },
+    // { x: 39519, y: 460, imageNumber: 8 },
+    // { x: 40046, y: 258, imageNumber: 6 },
   ];
 
   const canvas = document.querySelector("#game-canvas");
   const context = canvas.getContext("2d");
   const shell = document.querySelector(".game-shell");
+  const gameBgm = document.querySelector("#game-bgm");
+  let gameBgmAudioContext = null;
   let characterElement = document.querySelector("#game-character");
-  const assetWarning = document.querySelector("#asset-warning");
   const healthDisplay = document.querySelector("#health-display");
+  const damageVignette = document.querySelector("#damage-vignette");
+  const criticalHealthVignette = document.querySelector(
+    "#critical-health-vignette",
+  );
   const healthFlashEffect = CONFIG.collectible.collectionEffect;
   const healthFlashCycleMs =
     healthFlashEffect.blinkCount > 0
@@ -224,6 +305,28 @@
     "--health-flash-count",
     String(healthFlashEffect.blinkCount),
   );
+  [damageVignette, criticalHealthVignette].forEach((vignette) => {
+    vignette.style.setProperty(
+      "--damage-vignette-color",
+      CONFIG.damageEffect.color,
+    );
+    vignette.style.setProperty(
+      "--damage-vignette-opacity",
+      String(CONFIG.damageEffect.opacity),
+    );
+    vignette.style.setProperty(
+      "--damage-vignette-gradient-range",
+      CONFIG.damageEffect.gradientRange,
+    );
+  });
+  criticalHealthVignette.style.setProperty(
+    "--critical-pulse-duration",
+    `${CONFIG.damageEffect.criticalPulseDurationMs}ms`,
+  );
+  criticalHealthVignette.style.setProperty(
+    "--critical-fade-duration",
+    `${CONFIG.damageEffect.fadeDurationMs}ms`,
+  );
   const scoreDisplay = document.querySelector("#score-display");
   const comboDisplay = document.querySelector("#combo-display");
   const collectionAlert = document.querySelector("#collection-alert");
@@ -236,6 +339,9 @@
     failure: document.querySelector("#failure-overlay"),
     result: document.querySelector("#result-overlay"),
   };
+  const pauseMenuArt = document.querySelector("#pause-overlay .menu-art");
+  const pauseMenuCard = pauseMenuArt.closest(".pause-card");
+  const pauseMenuArtSource = pauseMenuArt.getAttribute("src");
   const missingAssets = new Set();
   const itemImages = new Map();
   const maxScroll =
@@ -260,6 +366,10 @@
   let spotlightAngle =
     (CONFIG.spotlight.initialDirectionDegrees * Math.PI) / 180;
   let animationFrameId = 0;
+  let pauseIntroTimerId = 0;
+  let pauseIntroReplay = 0;
+  let pauseIntroLoadHandler = null;
+  let pauseIntroErrorHandler = null;
   let previousFrameTime = 0;
   let flashTimerId = 0;
   let dialogueTimerId = 0;
@@ -295,16 +405,11 @@
   const endingDialogue = document.querySelector("#ending-dialogue");
   const endingContinue = document.querySelector("#ending-continue");
   const endingFinishButton = document.querySelector("#ending-finish-button");
+  const gameInstruction = document.querySelector(".game-instruction");
   const endingPortraitA = document.querySelector("#ending-portrait-a");
   const endingPortraitB = document.querySelector("#ending-portrait-b");
   const endingPortraitAImage = endingPortraitA.querySelector("img");
   const endingPortraitBImage = endingPortraitB.querySelector("img");
-  const endingPortraitAName = endingPortraitA.querySelector(
-    ".ending-portrait__name",
-  );
-  const endingPortraitBName = endingPortraitB.querySelector(
-    ".ending-portrait__name",
-  );
   const characterButton = document.querySelector("#character-button");
   characterButton.style.width = `${(CONFIG.ending.characterWidth / CONFIG.canvas.width) * 100}%`;
   characterButton.style.height = `${(CONFIG.ending.characterHeight / CONFIG.canvas.height) * 100}%`;
@@ -314,16 +419,13 @@
   Object.assign(endingDialoguePanel.style, dialogueLayout.panel);
   Object.assign(endingFinishButton.style, dialogueLayout.finishButton);
   endingPortraitAImage.src = ENDING_DIALOGUE.portraits.player.image;
-  endingPortraitAName.textContent = ENDING_DIALOGUE.portraits.player.name;
   endingPortraitBImage.src = ENDING_DIALOGUE.portraits.director.image;
-  endingPortraitBName.textContent = ENDING_DIALOGUE.portraits.director.name;
 
   function loadAsset(key, source) {
     const image = new Image();
     image.addEventListener("load", () => {
       if (key === "howtoplay") {
         document.querySelector(".instruction-art").style.display = "block";
-        document.querySelector(".fallback-instructions").hidden = true;
       }
       draw();
     });
@@ -338,8 +440,6 @@
     console.error(
       `[Light the Void] 素材載入失敗：${source}。請確認檔名及路徑。`,
     );
-    assetWarning.hidden = false;
-    assetWarning.textContent = `素材載入失敗（${missingAssets.size}）：${[...missingAssets].join("、")}`;
   }
 
   const background1 = loadAsset("background1", CONFIG.assets.background1);
@@ -384,9 +484,6 @@
     });
     image.addEventListener("load", () => {
       image.style.display = "block";
-      if (image.closest(".intro-card")) {
-        document.querySelector(".fallback-instructions").hidden = true;
-      }
     });
   });
 
@@ -597,8 +694,7 @@
       ) {
         const blinkIntervalMs =
           effect.blinkDurationMs / (effect.blinkCount * 2);
-        const isVisible =
-          Math.floor(elapsedMs / blinkIntervalMs) % 2 === 0;
+        const isVisible = Math.floor(elapsedMs / blinkIntervalMs) % 2 === 0;
         if (isVisible) {
           context.save();
           clipToSpotlight();
@@ -617,14 +713,9 @@
       const progress = elapsedMs / effect.popupDurationMs;
       const fadeStart = 0.75;
       const opacity =
-        progress <= fadeStart
-          ? 1
-          : (1 - progress) / (1 - fadeStart);
+        progress <= fadeStart ? 1 : (1 - progress) / (1 - fadeStart);
       const textY =
-        item.y -
-        height / 2 -
-        effect.popupOffsetY -
-        effect.popupRise * progress;
+        item.y - height / 2 - effect.popupOffsetY - effect.popupRise * progress;
       const text = `+${CONFIG.collectible.score}`;
 
       context.save();
@@ -906,10 +997,18 @@
     healthDisplay.classList.remove("health-display--flash");
     void healthDisplay.offsetWidth;
     isFlashing = true;
+    damageVignette.classList.remove("damage-vignette--flash");
+    void damageVignette.offsetWidth;
+    damageVignette.classList.add("damage-vignette--flash");
+    criticalHealthVignette.classList.toggle(
+      "critical-health-vignette--active",
+      health === 1,
+    );
     updateHud();
     flashTimerId = window.setTimeout(() => {
       flashTimerId = 0;
       isFlashing = false;
+      damageVignette.classList.remove("damage-vignette--flash");
       updateHud();
     }, healthFlashEffect.blinkDurationMs);
     if (health === 0) finishGame("failure");
@@ -921,6 +1020,8 @@
     if (nextState === "ending") freezeCharacterAnimation();
     else resetCharacterAnimation();
     state = nextState;
+    damageVignette.classList.remove("damage-vignette--flash");
+    criticalHealthVignette.classList.add("critical-health-vignette--fading");
     if (nextState === "failure") {
       endingInteraction.hidden = true;
       document.querySelector("#failure-score").textContent = String(score);
@@ -956,15 +1057,22 @@
     if (image.getAttribute("src") !== source) image.src = source;
   }
 
+  function getEndingDialogueText(line) {
+    return line.text
+      .replace(/\{n\}/g, () => String(collectedItemCount))
+      .replace(/\{暱稱\}/g, () => ENDING_DIALOGUE.portraits.player.name);
+  }
+
   function renderEndingDialogue() {
     const line = ENDING_DIALOGUE.lines[dialogueIndex];
     const speaker = ENDING_DIALOGUE.portraits[line.speaker];
     endingSpeaker.textContent = speaker.name;
     endingDialogue.textContent = "";
-    setDialoguePortraitImage(
-      endingPortraitAImage,
-      line.images?.player ?? ENDING_DIALOGUE.portraits.player.image,
-    );
+    const playerPortraitSource =
+      line.images?.player === "./image/game/tachie/tachieA-2.png"
+        ? line.images.player
+        : ENDING_DIALOGUE.portraits.player.image;
+    setDialoguePortraitImage(endingPortraitAImage, playerPortraitSource);
     setDialoguePortraitImage(
       endingPortraitBImage,
       line.images?.director ?? ENDING_DIALOGUE.portraits.director.image,
@@ -986,7 +1094,7 @@
     isDialogueTyping = true;
     updateDialogueControls();
 
-    const characters = Array.from(line.text);
+    const characters = Array.from(getEndingDialogueText(line));
     let characterIndex = 0;
     const typeNextCharacter = () => {
       if (state !== "dialogue") return;
@@ -1009,6 +1117,7 @@
   function beginEndingDialogue() {
     if (state !== "ending") return;
     state = "dialogue";
+    gameInstruction.hidden = true;
     characterButton.hidden = true;
     characterButton.setAttribute("aria-expanded", "true");
     endingDialogueScene.hidden = false;
@@ -1021,7 +1130,9 @@
     if (state !== "dialogue") return;
     if (isDialogueTyping) {
       clearDialogueTimer();
-      endingDialogue.textContent = ENDING_DIALOGUE.lines[dialogueIndex].text;
+      endingDialogue.textContent = getEndingDialogueText(
+        ENDING_DIALOGUE.lines[dialogueIndex],
+      );
       isDialogueTyping = false;
       updateDialogueControls();
       return;
@@ -1033,6 +1144,7 @@
 
   function beginGame() {
     if (state !== "intro") return;
+    startGameBackgroundMusic();
     state = "running";
     endingInteraction.hidden = false;
     setOverlay(null);
@@ -1041,16 +1153,84 @@
     startAnimationLoop();
   }
 
+  function startGameBackgroundMusic() {
+    try {
+      if (!gameBgmAudioContext) {
+        const AudioContextConstructor =
+          window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextConstructor) {
+          throw new Error("Web Audio API is not supported.");
+        }
+
+        const audioContext = new AudioContextConstructor();
+        const gain = audioContext.createGain();
+        const source = audioContext.createMediaElementSource(gameBgm);
+        gain.gain.value = 1.5;
+        source.connect(gain);
+        gain.connect(audioContext.destination);
+        gameBgmAudioContext = audioContext;
+      }
+      gameBgmAudioContext.resume().catch((error) => {
+        console.error("[Light the Void] 背景音樂增益啟用失敗。", error);
+      });
+    } catch (error) {
+      console.error("[Light the Void] 背景音樂增益設定失敗。", error);
+    }
+
+    gameBgm.play().catch((error) => {
+      console.error("[Light the Void] 背景音樂播放失敗。", error);
+    });
+  }
+
   function pauseGame() {
     if (state !== "running") return;
     state = "paused";
     stopAnimationLoop();
     resetCharacterAnimation();
     setOverlay("pause");
+    replayPauseBackground();
+  }
+
+  function replayPauseBackground() {
+    clearPauseIntro();
+    pauseMenuCard.classList.remove("pause-card--ready");
+    pauseIntroReplay += 1;
+
+    pauseIntroLoadHandler = () => {
+      clearPauseIntro();
+      pauseIntroTimerId = window.setTimeout(() => {
+        pauseMenuCard.classList.add("pause-card--ready");
+        pauseIntroTimerId = 0;
+      }, PAUSE_BACKGROUND_CYCLE_DURATION_MS);
+    };
+    pauseIntroErrorHandler = () => {
+      clearPauseIntro();
+      pauseMenuCard.classList.add("pause-card--ready");
+    };
+
+    pauseMenuArt.addEventListener("load", pauseIntroLoadHandler);
+    pauseMenuArt.addEventListener("error", pauseIntroErrorHandler);
+    pauseMenuArt.src = `${pauseMenuArtSource}?replay=${pauseIntroReplay}`;
+  }
+
+  function clearPauseIntro() {
+    if (pauseIntroTimerId) {
+      window.clearTimeout(pauseIntroTimerId);
+      pauseIntroTimerId = 0;
+    }
+    if (pauseIntroLoadHandler) {
+      pauseMenuArt.removeEventListener("load", pauseIntroLoadHandler);
+      pauseIntroLoadHandler = null;
+    }
+    if (pauseIntroErrorHandler) {
+      pauseMenuArt.removeEventListener("error", pauseIntroErrorHandler);
+      pauseIntroErrorHandler = null;
+    }
   }
 
   function resumeGame() {
     if (state !== "paused") return;
+    clearPauseIntro();
     state = "running";
     setOverlay(null);
     previousFrameTime = 0;
@@ -1071,6 +1251,11 @@
     currentCombo = CONFIG.combo.startingValue;
     maxCombo = CONFIG.combo.startingValue;
     isFlashing = false;
+    damageVignette.classList.remove("damage-vignette--flash");
+    criticalHealthVignette.classList.remove(
+      "critical-health-vignette--active",
+      "critical-health-vignette--fading",
+    );
     collectedItemCount = 0;
     accelerationStartScrollX =
       CONFIG.background.accelerationStartAfterCollectedItems <= 0
@@ -1083,6 +1268,7 @@
     endingApproachDuration = 0;
     developerScroll = null;
     items = makeItems();
+    gameInstruction.hidden = false;
     endingInteraction.hidden = true;
     endingDialogueScene.hidden = true;
     endingFinishButton.hidden = true;
@@ -1105,6 +1291,8 @@
     const highestCombo = maxCombo;
     const comboBonus = highestCombo * CONFIG.combo.comboBonusMultiplier;
     const finalScore = originalScore + comboBonus;
+    document.querySelector("#result-traveler-name").textContent =
+      ENDING_DIALOGUE.portraits.player.name;
     document.querySelector("#result-base-score").textContent =
       String(originalScore);
     document.querySelector("#result-max-combo").textContent =
@@ -1135,6 +1323,7 @@
       if (!insideHitbox || !isInsideSpotlight(screenX, item.y)) continue;
 
       item.collected = true;
+      window.playCollectionSound();
       item.collectionEffectElapsedMs = 0;
       item.touchingCharacter = false;
       collectedItemCount += 1;
@@ -1203,6 +1392,7 @@
     stopAnimationLoop();
     clearDialogueTimer();
     if (flashTimerId) window.clearTimeout(flashTimerId);
+    clearPauseIntro();
   });
 
   if (isDeveloperMode) {

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Light the Void 序章" />
+    <title>Light the Void</title>
+    <link rel="stylesheet" href="./CSS/game.css" />
+    <link rel="stylesheet" href="./CSS/intro.css" />
+  </head>
+  <body class="intro-page">
+    <main class="intro-shell">
+      <section
+        class="ending-dialogue-scene intro-dialogue-scene"
+        id="intro-dialogue-scene"
+        aria-label="序章獨白"
+      >
+        <div class="ending-portrait intro-portrait" id="intro-portrait">
+          <img
+            src="./image/intro/tachie/tachieA-1.png"
+            alt=""
+            id="intro-portrait-image"
+          />
+        </div>
+        <div class="ending-dialogue-panel intro-dialogue-panel">
+          <span class="ending-dialogue-speaker" id="intro-speaker"></span>
+          <span class="ending-dialogue" id="intro-dialogue"></span>
+          <span class="ending-dialogue-continue" id="intro-continue" hidden>
+            繼續 <span aria-hidden="true">▼</span>
+          </span>
+        </div>
+        <button
+          class="ending-dialogue-finish intro-finish-button"
+          id="intro-finish-button"
+          type="button"
+          hidden
+        >
+          <!-- 按鈕文字由 JS/intro.js 的 INTRO_DIALOGUE.finishButton.text 設定。 -->
+          <span id="intro-finish-text"></span>
+        </button>
+      </section>
+
+      <section class="intro-name-card" id="intro-name-card" hidden>
+        <img src="./image/intro/card.png" alt="" class="intro-card-image" />
+        <form class="intro-name-form" id="intro-name-form">
+          <label class="visually-hidden" for="traveler-name">我是誰</label>
+          <input
+            id="traveler-name"
+            name="traveler"
+            type="text"
+            placeholder="我是誰"
+            autocomplete="nickname"
+            maxlength="9"
+            required
+          />
+          <button type="submit" hidden disabled>
+            <!-- 按鈕文字可修改：開始巡邏 -->
+            <span>開始巡邏</span>
+          </button>
+        </form>
+      </section>
+    </main>
+    <script src="./JS/audio.js" defer></script>
+    <script src="./JS/intro.js" defer></script>
+  </body>
+</html>

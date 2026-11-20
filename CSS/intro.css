@@ -1,0 +1,156 @@
+.intro-page {
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+}
+
+.intro-shell {
+  position: relative;
+  width: min(100vw, calc(100dvh * 16 / 9));
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgb(47 32 91 / 35%), transparent 58%),
+    #080612;
+  isolation: isolate;
+}
+
+.intro-dialogue-scene {
+  background: rgb(8 5 19 / 60%);
+}
+
+.intro-portrait {
+  /* 序章立繪位置與大小：相對對話畫面的百分比。 */
+  left: 8%;
+  bottom: 24%;
+  width: 40%;
+  height: 70%;
+}
+
+.intro-dialogue-panel {
+  /* 序章對話框位置與寬度；文字內距在 game.css 的 ending-dialogue-panel 調整。 */
+  left: 7%;
+  bottom: 4%;
+  width: 86%;
+  min-height: 22%;
+}
+
+.intro-finish-button {
+  /* 位置參數：相對對話畫面右側 7%、底部 29%；尺寸由 game.css 的 ending-dialogue-finish 控制。 */
+  right: 7%;
+  bottom: 29%;
+  display: inline-grid;
+}
+
+.intro-finish-button > span {
+  position: relative;
+  z-index: 1;
+}
+
+.intro-name-card {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  animation: intro-card-drop 700ms cubic-bezier(0.2, 0.75, 0.25, 1) both;
+}
+
+.intro-card-image {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.intro-name-form {
+  position: absolute;
+  inset: 0;
+}
+
+.intro-name-form input {
+  position: absolute;
+  top: 46%;
+  left: 50%;
+  width: 22%;
+  height: 7%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: #181818;
+  background: transparent;
+  font: inherit;
+  font-size: clamp(1rem, 3vw, 2rem);
+  text-align: center;
+}
+
+.intro-name-form input::placeholder {
+  color: #858585;
+}
+
+.intro-name-form input:focus-visible {
+  outline: 0;
+}
+
+.intro-name-form button {
+  /* 尺寸參數：改 width 調整大小並維持 button-1 的原始長寬比；底部 3% 置中。 */
+  position: absolute;
+  bottom: 3%;
+  left: 50%;
+  display: inline-grid;
+  width: min(13rem, 42vw);
+  aspect-ratio: 309 / 175;
+  place-items: center;
+  padding: 0.55em 1em;
+  /* button.png 姓名卡按鈕文字大小：調整此值。 */
+  font-size: clamp(1.1rem, 1.7vw, 1.35rem);
+  transform: translateX(-50%);
+}
+
+.intro-name-form button > span {
+  position: relative;
+  z-index: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+@keyframes intro-card-drop {
+  from {
+    transform: translateY(-100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 620px) {
+  .intro-dialogue-panel {
+    min-height: 28%;
+  }
+
+  .intro-finish-button {
+    right: 7%;
+    bottom: 35%;
+  }
+
+  .intro-name-form button {
+    width: min(10rem, 46vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-name-card {
+    animation-duration: 0.01ms;
+  }
+}

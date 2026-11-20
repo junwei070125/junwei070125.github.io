@@ -20,27 +20,32 @@
       <div class="parallax" aria-hidden="true">
         <div class="parallax__layer parallax__layer--1"></div>
         <div class="parallax__layer parallax__layer--2"></div>
-        <div class="parallax__layer parallax__layer--3"></div>
+        <div class="parallax__layer parallax__layer--3 hide"></div>
         <div class="parallax__layer parallax__layer--4"></div>
-        <div class="parallax__layer parallax__layer--5"></div>
-        <div class="parallax__layer parallax__layer--6"></div>
-        <div class="parallax__layer parallax__layer--7"></div>
       </div>
 
       <div class="particle" aria-hidden="true"></div>
+      <div class="cursor-glow" aria-hidden="true"></div>
 
       <!-- 置中的圖片式遊戲入口；圖片請放在 images/start-button.png。 -->
-      <section class="home__content">
-        <a class="play-button" href="./game.html" aria-label="開始遊戲">
+      <section class="home__content hide">
+        <a class="play-button" href="./intro.html" aria-label="開始遊戲">
           <img
             class="play-button__image"
-            src="./image/logo.png"
+            src="./image/home/START.png"
             alt="開始遊戲"
           />
         </a>
-        <p class="home__instruction">點擊標題進入遊戲。</p>
       </section>
+
+      <img
+        class="home-overlay"
+        src="./image/home/layer-4.gif"
+        alt=""
+        aria-hidden="true"
+      />
     </main>
+    <script src="./JS/audio.js" defer></script>
     <script src="./JS/home.js" defer></script>
   </body>
 </html>

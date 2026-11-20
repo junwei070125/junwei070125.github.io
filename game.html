@@ -9,11 +9,6 @@
   </head>
   <body>
     <main class="game-page">
-      <header class="page-header">
-        <a class="home-link" href="./index.html">Light the Void</a>
-        <p>移動滑鼠照亮前方，點擊光束中的物件收集它們。</p>
-      </header>
-
       <section class="game-frame" aria-label="遊戲畫面">
         <div class="game-shell">
           <canvas
@@ -23,6 +18,16 @@
             aria-label="Light the Void 遊戲畫布"
           ></canvas>
           <img id="game-character" class="game-character" alt="" hidden />
+          <div class="damage-vignette" id="damage-vignette" aria-hidden="true">
+            <span></span>
+          </div>
+          <div
+            class="critical-health-vignette"
+            id="critical-health-vignette"
+            aria-hidden="true"
+          >
+            <span></span>
+          </div>
           <div class="ending-interaction" id="ending-interaction" hidden>
             <button
               class="ending-character-button"
@@ -37,7 +42,7 @@
                 alt=""
                 data-asset-label="主任 character-3.png"
               />
-              <span>主任</span>
+              <span>!</span>
             </button>
             <section
               class="ending-dialogue-scene"
@@ -54,7 +59,6 @@
                   alt=""
                   data-asset-label="旅人立繪 character-1.gif"
                 />
-                <span class="ending-portrait__name"></span>
               </div>
               <div
                 class="ending-portrait"
@@ -66,7 +70,6 @@
                   alt=""
                   data-asset-label="主任立繪 character-3.png"
                 />
-                <span class="ending-portrait__name"></span>
               </div>
               <button
                 class="ending-dialogue-panel"
@@ -94,7 +97,8 @@
                 type="button"
                 hidden
               >
-                結束對話
+                <!-- 按鈕文字可修改：結束對話 -->
+                <span>查看分數</span>
               </button>
             </section>
           </div>
@@ -117,11 +121,10 @@
               title="暫停遊戲"
             >
               <img
-                src="./image/game/menu.png"
+                src="./image/game/icon/menu.png"
                 alt=""
                 data-asset-label="選單按鈕 menu.png"
               />
-              <span aria-hidden="true">☰</span>
             </button>
           </div>
 
@@ -131,21 +134,20 @@
             aria-hidden="true"
             hidden
           >
-            <span class="collection-alert__marker" data-corner="topLeft">!</span>
-            <span class="collection-alert__marker" data-corner="topRight">!</span>
-            <span
-              class="collection-alert__marker"
-              data-corner="bottomLeft"
+            <span class="collection-alert__marker" data-corner="topLeft"
               >!</span
             >
-            <span
-              class="collection-alert__marker"
-              data-corner="bottomRight"
+            <span class="collection-alert__marker" data-corner="topRight"
+              >!</span
+            >
+            <span class="collection-alert__marker" data-corner="bottomLeft"
+              >!</span
+            >
+            <span class="collection-alert__marker" data-corner="bottomRight"
               >!</span
             >
           </div>
 
-          <p class="asset-warning" id="asset-warning" role="status" hidden></p>
           <aside class="developer-panel" id="developer-panel" hidden>
             <label>
               畫面縮放
@@ -176,51 +178,49 @@
             <div class="dialog-card intro-card">
               <img
                 class="instruction-art"
-                src="./image/game/howtoplay.png"
+                src="./image/game/screen/howtoplay.gif"
                 alt="玩法介紹"
-                data-asset-label="玩法介紹圖 howtoplay.png"
+                data-asset-label="玩法介紹圖 howtoplay.gif"
               />
               <div class="fallback-instructions">
-                <p class="eyebrow">HOW TO PLAY</p>
-                <h1>點亮虛空</h1>
-                <p>移動滑鼠旋轉光束，點擊光束照亮的物件收集分數。</p>
-                <p>避開物件碰撞，抵達背景盡頭即可完成旅程。</p>
+                <h1 class="eyebrow">HOW TO PLAY</h1>
+                <p class="carefull">
+                  小心異常，他會奪走你的<span class="carefull__health"
+                    >生命值</span
+                  >
+                </p>
+              </div>
+              <div class="instruction-hints">
+                <p class="instruction-hints__left">點擊異常以除掉他們!</p>
+                <p class="instruction-hints__right">移動滑鼠旋轉光束!</p>
               </div>
               <button
                 class="image-button action-button"
                 id="start-button"
                 type="button"
               >
-                <img
-                  src="./image/game/gotit.png"
-                  alt=""
-                  data-asset-label="開始按鈕 gotit.png"
-                />
+                <!-- 按鈕文字可修改：玩法介紹頁的開始提示 -->
                 <span>我知道了，開始遊戲</span>
               </button>
             </div>
           </section>
 
-          <section class="overlay" id="pause-overlay" hidden>
+          <section class="overlay overlay--pause" id="pause-overlay" hidden>
             <div class="dialog-card pause-card">
               <img
                 class="menu-art"
-                src="./image/game/menubg.gif"
+                src="./image/game/screen/menubg.gif"
                 alt=""
                 data-asset-label="暫停選單背景 menubg.gif"
               />
               <p class="eyebrow">PAUSED</p>
-              <h2>旅程暫停</h2>
+              <h2>暫停</h2>
               <button
                 class="image-button action-button"
                 id="home-button"
                 type="button"
               >
-                <img
-                  src="./image/game/button.png"
-                  alt=""
-                  data-asset-label="按鈕 button.png"
-                />
+                <!-- 按鈕文字可修改：返回主畫面 -->
                 <span>返回主畫面</span>
               </button>
               <button
@@ -228,11 +228,7 @@
                 id="resume-button"
                 type="button"
               >
-                <img
-                  src="./image/game/button.png"
-                  alt=""
-                  data-asset-label="按鈕 button.png"
-                />
+                <!-- 按鈕文字可修改：繼續遊戲 -->
                 <span>繼續遊戲</span>
               </button>
             </div>
@@ -248,32 +244,35 @@
                 id="retry-button"
                 type="button"
               >
-                <img
-                  src="./image/game/button.png"
-                  alt=""
-                  data-asset-label="按鈕 button.png"
-                />
+                <!-- 按鈕文字可修改：重新開始 -->
                 <span>重新開始</span>
               </button>
               <button class="text-button" data-go-home type="button">
-                返回主畫面
+                <!-- 按鈕文字可修改：返回主畫面 -->
+                <span>返回主畫面</span>
               </button>
             </div>
           </section>
 
-          <section class="overlay" id="result-overlay" hidden>
-            <div class="dialog-card result-card">
+          <section
+            class="overlay overlay--result"
+            id="result-overlay"
+            aria-label="結算畫面"
+            hidden
+          >
+            <div class="result-card">
               <img
                 class="result-art"
-                src="./image/game/result.png"
+                src="./image/game/screen/result.png"
                 alt=""
-                data-asset-label="結算畫面 result.png"
+                data-asset-label="結算布告欄背景 result-1.png"
               />
-              <p class="eyebrow">RESULT</p>
-              <h2>旅程結算</h2>
-              <dl class="result-list">
+              <dl class="result-list" aria-label="本次結算分數">
+                <div class="result-player">
+                  <dd id="result-traveler-name">旅人</dd>
+                </div>
                 <div>
-                  <dt>原始分數</dt>
+                  <dt>原始薪水</dt>
                   <dd id="result-base-score">196</dd>
                 </div>
                 <div>
@@ -281,37 +280,46 @@
                   <dd id="result-max-combo">0</dd>
                 </div>
                 <div>
-                  <dt>Combo 額外分數</dt>
+                  <dt>Combo 額外加薪</dt>
                   <dd id="result-bonus">0</dd>
                 </div>
                 <div class="result-total">
-                  <dt>最終總分</dt>
+                  <dt>最終總薪</dt>
                   <dd id="result-total">196</dd>
                 </div>
               </dl>
-              <button
-                class="image-button action-button"
-                id="result-retry-button"
-                type="button"
-              >
-                <img
-                  src="./image/game/button.png"
-                  alt=""
-                  data-asset-label="按鈕 button.png"
-                />
-                <span>再玩一次</span>
-              </button>
-              <button class="text-button" data-go-home type="button">
-                返回主畫面
-              </button>
+              <div class="result-actions">
+                <button
+                  class="image-button action-button"
+                  id="result-retry-button"
+                  type="button"
+                >
+                  <!-- 按鈕文字可修改：再玩一次 -->
+                  <span>再玩一次</span>
+                </button>
+                <button class="text-button" data-go-home type="button">
+                  <!-- 按鈕文字可修改：返回主畫面 -->
+                  <span>返回主畫面</span>
+                </button>
+              </div>
             </div>
           </section>
+
+          <!-- 可直接修改下方文字，調整遊戲畫面底部的操作提示。 -->
+          <p class="game-instruction">
+            移動滑鼠照亮前方，點擊光束中的物件收集它們。
+          </p>
         </div>
       </section>
-      <p class="page-footnote">
-        使用滑鼠指向遊戲畫面來轉動光束。按 Esc 可暫停或繼續。
-      </p>
     </main>
+    <audio
+      id="game-bgm"
+      src="./audio/gameBGM.mp3"
+      preload="auto"
+      loop
+      aria-hidden="true"
+    ></audio>
+    <script src="./JS/audio.js" defer></script>
     <script src="./JS/game.js" defer></script>
   </body>
 </html>

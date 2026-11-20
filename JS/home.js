@@ -2,9 +2,24 @@
 const parallaxTargets = document.querySelectorAll(
   ".parallax__layer, .play-button",
 );
+const cursorGlow = document.querySelector(".cursor-glow");
+const homeOverlay = document.querySelector(".home-overlay");
+
 let animationFrame = 0;
 let pointerX = window.innerWidth / 2;
 let pointerY = window.innerHeight / 2;
+
+function hideHomeOverlayAfterPlayback() {
+  // layer-4.gif 共 40 格、總長 1.76 秒；更換 GIF 時請同步調整。
+  window.setTimeout(() => {
+    homeOverlay.hidden = true;
+  }, 1760);
+}
+
+function updateCursorGlow() {
+  cursorGlow.style.setProperty("--pointer-x", `${pointerX}px`);
+  cursorGlow.style.setProperty("--pointer-y", `${pointerY}px`);
+}
 
 function updateParallax() {
   const horizontalPosition = (pointerX / window.innerWidth) * 2 - 1;
@@ -34,6 +49,7 @@ function updateParallax() {
 window.addEventListener("pointermove", (event) => {
   pointerX = event.clientX;
   pointerY = event.clientY;
+  updateCursorGlow();
   cancelAnimationFrame(animationFrame);
   animationFrame = requestAnimationFrame(() => {
     updateParallax();
@@ -41,5 +57,19 @@ window.addEventListener("pointermove", (event) => {
 });
 
 // 視窗尺寸改變時重新計算偏移；初始游標位置視為畫面中心。
-window.addEventListener("resize", updateParallax);
+window.addEventListener("resize", () => {
+  pointerX = Math.min(pointerX, window.innerWidth);
+  pointerY = Math.min(pointerY, window.innerHeight);
+  updateCursorGlow();
+  updateParallax();
+});
+
+if (homeOverlay.complete && homeOverlay.naturalWidth > 0) {
+  hideHomeOverlayAfterPlayback();
+} else {
+  homeOverlay.addEventListener("load", hideHomeOverlayAfterPlayback, {
+    once: true,
+  });
+}
+updateCursorGlow();
 updateParallax();
