@@ -11,19 +11,19 @@
     lines: [
       {
         text: "以前加班到半夜，是為了別人的專案。現在站在這裡，倒也沒什麼不同",
-        image: "./image/intro/tachie/tachieA-1.png",
+        image: "./image/game/tachie/tachieA-1.png",
       },
       {
         text: "面試時，那位人事部長一直在笑，從頭笑到尾，連講到「我沒什麼特別的優點」的時候也在笑。",
-        image: "./image/intro/tachie/tachieA-2.png",
+        image: "./image/game/tachie/tachieA-2.png",
       },
       {
         text: "他提到深夜的學校「有一點不太乾淨」，但只要處理掉任何一個，月底就會多給一點錢。",
-        image: "./image/intro/tachie/tachieA-1.png",
+        image: "./image/game/tachie/tachieA-1.png",
       },
       {
         text: "今天是我要去藝償學校的第一天，希望一切順利。",
-        image: "./image/intro/tachie/tachieA-1.png",
+        image: "./image/game/tachie/tachieA-1.png",
       },
     ],
   };

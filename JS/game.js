@@ -57,6 +57,14 @@
         shadowBlur: 24,
       },
     },
+    jumpscare: {
+      displayDurationMs: 500, // 驚嚇圖顯示時間，單位：毫秒。
+      opacity: 1, // 驚嚇圖透明度，範圍 0 到 1。
+      images: {
+        5: "./image/game/jumpscare/worm.gif",
+        14: "./image/game/jumpscare/14.png",
+      },
+    },
     collectionAlert: {
       fontSize: 96, // 驚嘆號大小，單位：畫布像素。
       positions: {
@@ -85,7 +93,7 @@
     ending: {
       // >>> character-3 位置：手動調整下方 X/Y（背景世界座標，非畫面座標）。
       characterX: 31300,
-      characterY: 430,
+      characterY: 440,
       characterWidth: 110,
       characterHeight: 150,
       dialogue: {
@@ -140,73 +148,75 @@
       },
     },
     lines: [
-      { speaker: "director", text: "辛苦了。這條走廊，很久沒有這麼安靜。" },
+      {
+        speaker: "director",
+        text: "{暱稱}，辛苦了。這條走廊，很久沒有這麼安靜。",
+      },
       {
         speaker: "player",
-        text: "……部長，這麼晚了還在學校？",
+        text: "主任，你還沒回去？",
         images: { player: "./image/game/tachie/tachieA-2.png" },
       },
       {
         speaker: "director",
-        text: "今晚是新人的第一天，總得有人在終點等你。",
+        text: "你今天第一天上班，我總得過來看看不是？",
       },
       {
         speaker: "director",
-        text: "我剛才在監控室看著。{n} 個，我數過了。",
+        text: "新人第一天能處理掉{n}個，真不愧是你呀！",
       },
       {
         speaker: "player",
-        text: "……",
+        text: ".......{n}個？",
+      },
+      {
+        speaker: "director",
+        text: "哦，你說這個啊～我剛順便數的。",
+      },
+      {
+        speaker: "director",
+        text: "我可是得加倍關心你第一次上崗的狀況呀，畢竟如果{暱稱}遇上了什麼麻煩的話，我可得第一時間趕到不是嗎？",
+        images: { director: "./image/game/tachie/tachieB-2.png" },
+      },
+      {
+        speaker: "player",
+        text: "謝謝主任，但不太需要。",
         images: { player: "./image/game/tachie/tachieA-3.png" },
       },
       {
         speaker: "director",
-        text: "別誤會，是工作需要。新人的狀況，我總要掌握。",
+        text: "......",
         images: { director: "./image/game/tachie/tachieB-2.png" },
       },
       {
         speaker: "director",
-        text: "不過你走完全程的樣子，我看得比預想的還認真。",
-        images: { director: "./image/game/tachie/tachieB-3.png" },
-      },
-      {
-        speaker: "player",
-        text: "……部長？",
-        images: { player: "./image/game/tachie/tachieA-2.png" },
+        text: "{暱稱}果然很特別，似乎完全不需要特別指導就可以做的很好，我很滿意哦。",
       },
       {
         speaker: "director",
-        text: "抱歉，我話太多了。面試那天人很多，我通常記不住，只有你回答「我沒什麼特別的優點」的語氣，我到現在都記得。",
+        text: "對了，明天的班表我排好了，你的名字寫在最上面。",
+      },
+      {
+        speaker: "player",
+        text: "……我還沒想好要不要來。",
+      },
+      {
+        speaker: "director",
+        text: "沒事，你慢慢想。反正我鑰匙放在警衛室桌上，你可以直接過來拿",
+      },
+      {
+        speaker: "director",
+        text: "時間不早了，回去路上小心，有任何問題隨時都可以找我。",
         images: { director: "./image/game/tachie/tachieB-2.png" },
       },
       {
-        speaker: "player",
-        text: "……我只是很普通地回答。",
-      },
-      {
         speaker: "director",
-        text: "可是我就是記住了。我自己也不太明白為什麼",
+        text: "我一直都在。",
         images: { director: "./image/game/tachie/tachieB-2.png" },
       },
       {
         speaker: "director",
-        text: "對了，明天的班表我先排好了，你的名字寫在最上面。",
-      },
-      {
-        speaker: "player",
-        text: "……我還沒決定明天要不要來。",
-      },
-      {
-        speaker: "director",
-        text: "不急，你慢慢想。鑰匙放在警衛室桌上，想來的時候就能拿。",
-      },
-      {
-        speaker: "director",
-        text: "路上小心，我看你走到門口。",
-      },
-      {
-        speaker: "director",
-        text: "明天見，{暱稱}。我會先到的。",
+        text: "希望明天能見到你，{暱稱}。",
         images: { director: "./image/game/tachie/tachieB-2.png" },
       },
     ],
@@ -330,6 +340,16 @@
   const scoreDisplay = document.querySelector("#score-display");
   const comboDisplay = document.querySelector("#combo-display");
   const collectionAlert = document.querySelector("#collection-alert");
+  const jumpscareOverlay = document.querySelector("#jumpscare-overlay");
+  let jumpscareTimerId = null;
+  let jumpscareRequestId = 0;
+  jumpscareOverlay.style.setProperty(
+    "--jumpscare-opacity",
+    String(CONFIG.jumpscare.opacity),
+  );
+  jumpscareOverlay.addEventListener("error", () => {
+    reportMissingAsset(jumpscareOverlay.getAttribute("src"));
+  });
   const collectionAlertMarkers = [
     ...collectionAlert.querySelectorAll(".collection-alert__marker"),
   ];
@@ -373,8 +393,10 @@
   let previousFrameTime = 0;
   let flashTimerId = 0;
   let dialogueTimerId = 0;
+  let resumeDialogueTyping = null;
   let dialogueIndex = 0;
   let isDialogueTyping = false;
+  let pausedFromState = "running";
   let endingApproachElapsed = null;
   let endingApproachStart = 0;
   let endingApproachDuration = 0;
@@ -452,6 +474,12 @@
     const key = source.split("/").pop().split(".")[0];
     loadAsset(key, source);
   });
+  const jumpscareImages = new Map(
+    Object.entries(CONFIG.jumpscare.images).map(([imageNumber, source]) => [
+      Number(imageNumber),
+      loadAsset(`jumpscare-${imageNumber}`, source),
+    ]),
+  );
 
   function getItemImage(imageNumber) {
     if (
@@ -1069,9 +1097,7 @@
     endingSpeaker.textContent = speaker.name;
     endingDialogue.textContent = "";
     const playerPortraitSource =
-      line.images?.player === "./image/game/tachie/tachieA-2.png"
-        ? line.images.player
-        : ENDING_DIALOGUE.portraits.player.image;
+      line.images?.player ?? ENDING_DIALOGUE.portraits.player.image;
     setDialoguePortraitImage(endingPortraitAImage, playerPortraitSource);
     setDialoguePortraitImage(
       endingPortraitBImage,
@@ -1101,6 +1127,7 @@
       if (characterIndex >= characters.length) {
         dialogueTimerId = 0;
         isDialogueTyping = false;
+        resumeDialogueTyping = null;
         updateDialogueControls();
         return;
       }
@@ -1111,6 +1138,7 @@
         CONFIG.ending.dialogue.typingSpeedMs,
       );
     };
+    resumeDialogueTyping = typeNextCharacter;
     typeNextCharacter();
   }
 
@@ -1183,10 +1211,14 @@
   }
 
   function pauseGame() {
-    if (state !== "running") return;
+    if (state !== "running" && state !== "ending" && state !== "dialogue") {
+      return;
+    }
+    pausedFromState = state;
     state = "paused";
     stopAnimationLoop();
-    resetCharacterAnimation();
+    if (pausedFromState === "running") resetCharacterAnimation();
+    if (pausedFromState === "dialogue") clearDialogueTimer();
     setOverlay("pause");
     replayPauseBackground();
   }
@@ -1231,20 +1263,30 @@
   function resumeGame() {
     if (state !== "paused") return;
     clearPauseIntro();
-    state = "running";
+    state = pausedFromState;
     setOverlay(null);
-    previousFrameTime = 0;
-    startAnimationLoop();
+    if (state === "running") {
+      previousFrameTime = 0;
+      startAnimationLoop();
+    } else {
+      draw();
+      if (state === "dialogue" && isDialogueTyping) {
+        resumeDialogueTyping?.();
+      }
+    }
   }
 
   function restartGame() {
     stopAnimationLoop();
+    clearPauseIntro();
     clearDialogueTimer();
+    resumeDialogueTyping = null;
     if (flashTimerId) {
       window.clearTimeout(flashTimerId);
       flashTimerId = 0;
     }
     state = "intro";
+    pausedFromState = "running";
     scrollX = CONFIG.background.startPosition;
     score = CONFIG.player.startingScore;
     health = CONFIG.player.startingHealth;
@@ -1323,7 +1365,8 @@
       if (!insideHitbox || !isInsideSpotlight(screenX, item.y)) continue;
 
       item.collected = true;
-      window.playCollectionSound();
+      window.playCollectionSound(item.imageNumber);
+      showJumpscare(item.imageNumber);
       item.collectionEffectElapsedMs = 0;
       item.touchingCharacter = false;
       collectedItemCount += 1;
@@ -1340,6 +1383,41 @@
       draw();
       return;
     }
+  }
+
+  function showJumpscare(imageNumber) {
+    const image = jumpscareImages.get(imageNumber);
+    if (!image) return;
+
+    jumpscareOverlay.hidden = true;
+    if (jumpscareTimerId !== null) {
+      window.clearTimeout(jumpscareTimerId);
+      jumpscareTimerId = null;
+    }
+    const requestId = ++jumpscareRequestId;
+    const displayImage = () => {
+      if (requestId !== jumpscareRequestId) return;
+
+      jumpscareOverlay.src = image.getAttribute("src");
+      jumpscareOverlay.hidden = false;
+      jumpscareTimerId = window.setTimeout(() => {
+        jumpscareOverlay.hidden = true;
+        jumpscareTimerId = null;
+      }, CONFIG.jumpscare.displayDurationMs);
+    };
+
+    if (image.complete && image.naturalWidth > 0) {
+      displayImage();
+      return;
+    }
+
+    const onLoad = () => {
+      image.removeEventListener("error", onError);
+      displayImage();
+    };
+    const onError = () => image.removeEventListener("load", onLoad);
+    image.addEventListener("load", onLoad, { once: true });
+    image.addEventListener("error", onError, { once: true });
   }
 
   canvas.addEventListener("pointermove", (event) => {
@@ -1360,6 +1438,9 @@
   document
     .querySelector("#resume-button")
     .addEventListener("click", resumeGame);
+  document
+    .querySelector("#pause-retry-button")
+    .addEventListener("click", restartGame);
   document.querySelector("#home-button").addEventListener("click", () => {
     window.location.href = CONFIG.homePath;
   });
@@ -1380,8 +1461,11 @@
 
   window.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
-    if (state === "running") pauseGame();
-    else if (state === "paused") resumeGame();
+    if (state === "running" || state === "ending" || state === "dialogue") {
+      pauseGame();
+    } else if (state === "paused") {
+      resumeGame();
+    }
   });
 
   document.addEventListener("visibilitychange", () => {

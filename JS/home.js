@@ -4,6 +4,10 @@ const parallaxTargets = document.querySelectorAll(
 );
 const cursorGlow = document.querySelector(".cursor-glow");
 const homeOverlay = document.querySelector(".home-overlay");
+const musicToggle = document.querySelector("#music-toggle");
+const homeBgm = document.querySelector("#home-bgm");
+const musicToggleImage = musicToggle.querySelector("img");
+let isMusicEnabled = false;
 
 let animationFrame = 0;
 let pointerX = window.innerWidth / 2;
@@ -20,6 +24,33 @@ function updateCursorGlow() {
   cursorGlow.style.setProperty("--pointer-x", `${pointerX}px`);
   cursorGlow.style.setProperty("--pointer-y", `${pointerY}px`);
 }
+
+function updateMusicToggle() {
+  musicToggleImage.src = isMusicEnabled
+    ? "./image/game/icon/music.png"
+    : "./image/game/icon/off.png";
+  musicToggle.setAttribute(
+    "aria-label",
+    isMusicEnabled ? "靜音音樂" : "開啟音樂",
+  );
+  musicToggle.setAttribute("aria-pressed", String(isMusicEnabled));
+}
+
+musicToggle.addEventListener("click", () => {
+  isMusicEnabled = !isMusicEnabled;
+  homeBgm.muted = !isMusicEnabled;
+  updateMusicToggle();
+
+  if (isMusicEnabled) {
+    homeBgm.play().catch((error) => {
+      console.error("[Light the Void] 首頁音樂播放失敗。", error);
+      isMusicEnabled = false;
+      homeBgm.muted = true;
+      updateMusicToggle();
+    });
+  }
+});
+homeBgm.muted = true;
 
 function updateParallax() {
   const horizontalPosition = (pointerX / window.innerWidth) * 2 - 1;

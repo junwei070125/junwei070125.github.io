@@ -1,14 +1,20 @@
 (() => {
   const buttonSound = new Audio("./audio/button.mp3");
+  const menuSound = new Audio("./audio/sticky.mp3");
   const collectionSound = new Audio("./audio/irregular.mp3");
+  const doorSound = new Audio("./audio/door.mp3");
+  const screamSound = new Audio("./audio/scream.mp3");
   const startSound = new Audio("./audio/start.mp3");
   const effectVolume = 0.75;
   const buttonSelector =
-    ".action-button, .text-button, .ending-dialogue-finish, .intro-name-form button";
+    ".action-button, .text-button, .ending-dialogue-finish, .intro-name-form button, .menu-button";
   let isNavigatingToIntro = false;
 
   buttonSound.volume = effectVolume;
+  menuSound.volume = effectVolume;
   collectionSound.volume = effectVolume;
+  doorSound.volume = effectVolume;
+  screamSound.volume = effectVolume;
 
   function playSound(audio, label) {
     audio.currentTime = 0;
@@ -49,10 +55,17 @@
 
       const button = event.target.closest(buttonSelector);
       if (!button || button.disabled) return;
-      playSound(buttonSound, "按鈕");
+      playSound(
+        button.matches(".menu-button") ? menuSound : buttonSound,
+        "按鈕",
+      );
     },
     true,
   );
 
-  window.playCollectionSound = () => playSound(collectionSound, "收集物件");
+  window.playCollectionSound = (imageNumber) => {
+    if (imageNumber === 4) return playSound(doorSound, "物件 4");
+    if (imageNumber === 14) return playSound(screamSound, "物件 14");
+    return playSound(collectionSound, "收集物件");
+  };
 })();
